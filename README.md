@@ -198,20 +198,6 @@ This project strengthened my understanding of:
 
 ---
 
-# 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome.
-
-Feel free to fork the project and submit a pull request.
-
----
-
-# 📄 License
-
-This project is licensed under the MIT License.
-
----
-
 # 👩‍💻 Developer
 
 **Devyani Vizekar**
