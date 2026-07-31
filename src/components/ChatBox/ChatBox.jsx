@@ -182,7 +182,7 @@ const ChatBox = () => {
         <input onChange={(e) => setInput(e.target.value)} value={input} type="text" placeholder='Send a message' />
         <input onChange={sendImage} type="file" id='image' accept='image/png, image/jpeg' hidden />
         <label htmlFor="image">
-          <img src={assets.gallery_icon} alt="" />
+          <img src={assets.gallery_icon} className="gallery" alt="" />
         </label>
         <img onClick={sendMessage} src={assets.send_button} alt="" />
       </div>
@@ -190,7 +190,7 @@ const ChatBox = () => {
   )
     : <div className={`chat-welcome ${chatVisible ? "" : "hidden"}`}>
       <img src={assets.logo_icon} alt="" />
-      <p>Chat anytime, anywhere</p>
+      <p><i>Conversations, beautifully connected.</i></p>
     </div>
 }
 
