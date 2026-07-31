@@ -1,6 +1,6 @@
-# 🌙 Lunara – Modern Real-Time Chat Application
-
 <div align="center">
+  
+# 🌙 Lunara – Modern Real-Time Chat Application
 
 <img src="./src/assets/logo_big.png" alt="Lunara Logo" width="220"/>
 
