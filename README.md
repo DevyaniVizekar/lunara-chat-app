@@ -14,8 +14,6 @@ A modern real-time messaging application built with **React**, **Firebase**, and
 
 ### 🚀 https://lunara-chat-app.vercel.app/
 
-**Try Lunara Live:** https://lunara-chat-app.vercel.app/
-
 </div>
 
 ---
