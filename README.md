@@ -20,11 +20,7 @@ A modern real-time messaging application built with **React**, **Firebase**, and
 
 ## 📸 Preview
 
-> Add screenshots here
 
-| Login | Chat | Profile |
-|-------|------|---------|
-| Screenshot | Screenshot | Screenshot |
 
 ---
 
