@@ -20,7 +20,7 @@ A modern real-time messaging application built with **React**, **Firebase**, and
 
 ## 📸 Preview
 
-
+![Lunara Chat App Preview](public/preview.png)
 
 ---
 
