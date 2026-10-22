@@ -1,16 +1,205 @@
-# React + Vite
+<div align="center">
+  
+# 🌙 Lunara – Modern Real-Time Chat Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<img src="./src/assets/logo_big.png" alt="Lunara Logo" width="220"/>
 
-Currently, two official plugins are available:
+### ✨ Conversations, beautifully connected.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+A modern real-time messaging application built with **React**, **Firebase**, and a custom **Lavender + Peach premium UI** focused on elegance, simplicity, and user experience.
 
-## React Compiler
+<br/>
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🌐 Live Demo
 
-## Expanding the ESLint configuration
+### 🚀 https://lunara-chat-app.vercel.app/
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+</div>
+
+---
+
+## 📸 Preview
+
+
+
+---
+
+# ✨ Features
+
+- 💬 Real-time one-to-one messaging
+- 📷 Image sharing inside chats
+- 👤 User authentication (Sign Up / Login)
+- 🔐 Secure Firebase Authentication
+- ☁️ Cloud Firestore database
+- 🖼️ Profile picture upload
+- ✏️ Edit profile information
+- 🟢 Online status indicator
+- 🔎 Live user search
+- 📱 Fully responsive design
+- 🎨 Custom Lavender + Peach UI Theme
+- 🌙 Glassmorphism inspired interface
+- ⚡ Instant message synchronization
+- 📂 Media preview support
+
+---
+
+# 🎨 Design Philosophy
+
+Unlike traditional messaging applications, **Lunara** focuses on creating a calm and elegant chatting experience.
+
+The interface was designed around a custom **Lavender + Peach** color palette to make conversations feel warm, modern, and visually pleasing while maintaining excellent readability.
+
+The goal was to create a UI that feels premium without becoming distracting.
+
+---
+
+# 🛠 Tech Stack
+
+### Frontend
+
+- React.js
+- JavaScript (ES6+)
+- CSS3
+- React Router
+- Context API
+
+### Backend
+
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Storage
+
+### Tools
+
+- Vite
+- Git
+- GitHub
+- VS Code
+
+---
+
+# 📂 Project Structure
+
+```
+src
+│
+├── assets
+├── components
+│   ├── LeftSidebar
+│   ├── ChatBox
+│   ├── RightSidebar
+│
+├── pages
+│   ├── Login
+│   ├── Profile
+│   └── Chat
+│
+├── context
+├── config
+├── lib
+└── App.jsx
+```
+
+---
+
+# 🌟 Highlights
+
+### Real-Time Messaging
+
+Messages update instantly using Firestore listeners.
+
+---
+
+### Authentication
+
+Secure user registration and login using Firebase Authentication.
+
+---
+
+### Cloud Storage
+
+Upload profile pictures and share images seamlessly.
+
+---
+
+### Responsive Design
+
+Optimized for desktop, tablet, and mobile devices.
+
+---
+
+### Custom UI
+
+Designed from scratch using a Lavender + Peach design system with:
+
+- Soft gradients
+- Rounded components
+- Premium shadows
+- Glassmorphism
+- Smooth hover animations
+
+---
+
+# 📱 Responsive
+
+✅ Desktop
+
+✅ Tablet
+
+✅ Mobile
+
+---
+
+# 📌 Future Improvements
+
+- Group Chats
+- Voice Messages
+- Emoji Picker
+- Message Reactions
+- Read Receipts
+- Typing Indicator
+- Push Notifications
+- Video Calling
+- Voice Calling
+- Dark Mode
+- End-to-End Encryption
+
+---
+
+# 🎯 What I Learned
+
+This project strengthened my understanding of:
+
+- React Component Architecture
+- State Management with Context API
+- Firebase Authentication
+- Firestore Database Design
+- Cloud Storage Integration
+- Responsive UI Development
+- Real-time Applications
+- Git & GitHub Workflow
+- Clean UI/UX Design Principles
+
+---
+
+# 📈 Performance
+
+- Responsive Layout
+- Optimized Firebase Reads
+- Reusable Components
+- Fast Vite Build
+- Modern React Practices
+
+---
+
+# 👩‍💻 Developer
+
+**Devyani Vizekar**
+
+Frontend Developer | React Developer
+
+Passionate about building modern, responsive, and user-friendly web applications that combine beautiful UI with practical functionality.
+
+
+
+It really helps and motivates me to build more amazing projects.
