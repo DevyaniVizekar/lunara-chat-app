@@ -13,18 +13,19 @@ const App = () => {
   const navigate = useNavigate();
   const {loadUserData} = useContext(AppContext);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        navigate("/chat");
-        await loadUserData(user.uid);
-      } else {
-        navigate("/");
-      }
-    });
-  
-    return unsubscribe;
-  }, []);
+ 
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      await loadUserData(user.uid);
+    } else {
+      navigate("/", { replace: true });
+    }
+  });
+
+  return unsubscribe;
+}, [loadUserData, navigate]);
+
   
 
   return (

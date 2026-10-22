@@ -3,14 +3,10 @@ import './LeftSidebar.css'
 import assets from '../../assets/assets'
 import { useNavigate } from 'react-router-dom'
 import {
-  arrayUnion,
   collection,
   getDocs,
   query,
-  serverTimestamp,
   setDoc,
-  updateDoc,
-  getDoc,
   doc,
   where
 } from "firebase/firestore";
@@ -58,108 +54,60 @@ const LeftSidebar = () => {
     }
   }
 
-  const addChat = async () => {
-    // Prevent duplicate chats
-    const alreadyExists = chatData.some(
-      (item) => item.rId === user.id
-    );
-
-    if (alreadyExists) {
-      toast.info("Chat already exists");
-      return;
-    }
-
-    const messagesRef = collection(db, "messages");
-    const chatsRef = collection(db, "chats");
-    try {
-      const newMessageRef = doc(messagesRef);
-      await setDoc(newMessageRef, {
-        createAt: serverTimestamp(),
-        messages: []
-      })
-
-      const otherUserChatRef = doc(chatsRef, user.id);
-      const currentUserChatRef = doc(chatsRef, userData.id);
-
-      // Current user's chat document
-      if (!(await getDoc(currentUserChatRef)).exists()) {
-        await setDoc(currentUserChatRef, {
-          chatsData: [],
-        });
-      }
-
-      // Other user's chat document
-      if (!(await getDoc(otherUserChatRef)).exists()) {
-        await setDoc(otherUserChatRef, {
-          chatsData: [],
-        });
-      }
-
-      await updateDoc(currentUserChatRef, {
-        chatsData: arrayUnion({
-          messageId: newMessageRef.id,
-          lastMessage: "",
-          rId: user.id,
-          updatedAt: Date.now(),
-          messageSeen: true,
-        }),
-      });
-
-      await updateDoc(otherUserChatRef, {
-        chatsData: arrayUnion({
-          messageId: newMessageRef.id,
-          lastMessage: "",
-          rId: userData.id,
-          updatedAt: Date.now(),
-          messageSeen: true,
-        }),
-      });
-
-      const uSnap = await getDoc(doc(db, "users", user.id));
-      const uData = uSnap.data();
-      setChat({
-        messageId: newMessageRef.id,
-        lastMessage: "",
-        rId: user.id,
-        updatedAt: Date.now(),
-        messageSeen: true,
-        userData: uData
-      })
-      setShowSearch(false)
-      setChatVisible(true)
-
-    } catch (error) {
-      toast.error(error.message);
-      console.error(error)
-    }
+const addChat = async () => {
+  if (!user || !userData?.id) {
+    toast.error("Please sign in and select a user.");
+    return;
   }
 
-  const setChat = async (item) => {
-    try {
-      setMessagesId(item.messageId);
-      setChatUser(item)
-      const userChatsRef = doc(db, 'chats', userData.id);
-      const userChatsSnapshot = await getDoc(userChatsRef);
-      const userChatsData = userChatsSnapshot.data();
-      const chatIndex = userChatsData.chatsData.findIndex(
-        (c) => c.messageId === item.messageId
-      );
+  const existingChat = chatData.find(
+    (item) => item.rId === user.id
+  );
 
-      if (chatIndex === -1) {
-        console.log("Chat not found");
-        return;
-      }
-
-      userChatsData.chatsData[chatIndex].messageSeen = true;
-      await updateDoc(userChatsRef, {
-        chatsData: userChatsData.chatsData
-      })
-      setChatVisible(true);
-    } catch (error) {
-      toast.error(error.message)
-    }
-
+  if (existingChat) {
+    setMessagesId(existingChat.messageId);
+    setChatUser(existingChat);
+    setShowSearch(false);
+    setChatVisible(true);
+    return;
   }
+
+  try {
+    const newMessageRef = doc(collection(db, "messages"));
+
+    await setDoc(newMessageRef, {
+      participantIds: [userData.id, user.id],
+      messages: [],
+      lastMessage: "",
+      updatedAt: Date.now()
+    });
+
+    setMessagesId(newMessageRef.id);
+
+    setChatUser({
+      messageId: newMessageRef.id,
+      lastMessage: "",
+      rId: user.id,
+      updatedAt: Date.now(),
+      messageSeen: true,
+      userData: user
+    });
+
+    setShowSearch(false);
+    setChatVisible(true);
+  } catch (error) {
+    console.error("Failed to create conversation:", error);
+    toast.error(error.message || "Unable to start this conversation.");
+  }
+};
+
+ const setChat = (item) => {
+  if (!item?.messageId || !item?.userData) return;
+
+  setMessagesId(item.messageId);
+  setChatUser(item);
+  setChatVisible(true);
+};
 
   useEffect(() => {
     const updateChatUserData = async () => {

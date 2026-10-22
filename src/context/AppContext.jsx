@@ -1,5 +1,14 @@
-import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
-import { createContext, useEffect, useState } from "react";
+import {
+  doc,
+  getDoc,
+  onSnapshot,
+  updateDoc,
+  setDoc,
+  collection,
+  query,
+  where
+} from "firebase/firestore";
+import { createContext, useCallback, useEffect, useState } from "react";
 import { auth, db } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
@@ -16,81 +25,154 @@ const AppContextProvider = (props) => {
   const [chatUser, setChatUser] = useState(null);
   const [chatVisible, setChatVisible] = useState(false);
 
-  const clearChatState = () => {
+  const clearChatState = useCallback(() => {
     setChatData([]);
     setMessages([]);
     setMessagesId(null);
     setChatUser(null);
     setChatVisible(false);
-  };
+  }, []);
 
-  const loadUserData = async (uid) => {
-
+  const loadUserData = useCallback(async (uid) => {
     clearChatState();
-    
+
     try {
-      const userRef = doc(db, 'users', uid);
-      const userSnap = await getDoc(userRef);
+      const userRef = doc(db, "users", uid);
+      let userSnap = await getDoc(userRef);
+
+      // Recover if the authenticated account has no Firestore profile.
       if (!userSnap.exists()) {
-        await signOut(auth);
-        navigate("/");
-        return;
-      }
-      const userData = userSnap.data();
-      
-      setUserData(userData);
-      
-      if (userData.avatar && userData.name) {
-        navigate('/chat');
-      } else {
-        navigate('/profile')
-      }
-      await updateDoc(userRef, {
-        lastSeen: Date.now()
-      })
-      setInterval(async () => {
-        if (auth.currentUser) {
-          await updateDoc(userRef, {
-            lastSeen: Date.now()
-          })
+        const currentUser = auth.currentUser;
+
+        if (!currentUser || currentUser.uid !== uid) {
+          throw new Error("Your session has expired. Please sign in again.");
         }
-      }, 60000);
+
+        await setDoc(userRef, {
+          id: uid,
+          username: (currentUser.email || "user")
+            .split("@")[0]
+            .toLowerCase(),
+          email: currentUser.email || "",
+          name: "",
+          avatar: "",
+          bio: "Hey, there! I am using Lunara.",
+          lastSeen: Date.now(),
+        });
+
+        userSnap = await getDoc(userRef);
+      }
+
+      if (!userSnap.exists()) {
+        throw new Error("Your profile could not be loaded. Please try again.");
+      }
+
+      const profileData = userSnap.data();
+
+      // Repair a missing chat document instead of leaving it absent.
+     
+
+      setUserData(profileData);
+
+      // Update lastSeen without blocking navigation.
+      updateDoc(doc(db, "users", uid), {
+        lastSeen: Date.now(),
+      }).catch((error) => {
+        console.error("Could not update lastSeen:", error);
+      });
+
+      // New or incomplete profiles must complete profile setup.
+      if (!profileData.name || !profileData.avatar) {
+        navigate("/profile", { replace: true });
+      } else {
+        navigate("/chat", { replace: true });
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Failed to load user data:", error);
+      setUserData(null);
+      clearChatState();
+
+      // Avoid an endless spinner when Firebase requests fail.
+      if (
+        error.code === "permission-denied" ||
+        error.code === "unauthenticated"
+      ) {
+        await signOut(auth);
+        navigate("/", { replace: true });
+      }
+
+      // Other errors are shown to the user; don't silently sign them out.
+      import("react-toastify").then(({ toast }) => {
+        toast.error(
+          error.message || "Unable to load your account. Please try again."
+        );
+      });
     }
+  }, [clearChatState, navigate]);
+
+useEffect(() => {
+  if (!userData?.id) {
+    setChatData([]);
+    return;
   }
 
-  useEffect(() => {
-    if (userData) {
-      const chatRef = doc(db, "chats", userData.id);
+  const messagesQuery = query(
+    collection(db, "messages"),
+    where("participantIds", "array-contains", userData.id)
+  );
 
-      const unSub = onSnapshot(chatRef, async (res) => {
+  let active = true;
 
-        if (!res.exists()) {
-          setChatData([]);
-          return;
+  const unsubscribe = onSnapshot(
+    messagesQuery,
+    async (snapshot) => {
+      try {
+        const items = await Promise.all(
+          snapshot.docs.map(async (messageDoc) => {
+            const data = messageDoc.data();
+            const otherId = (data.participantIds || []).find(
+              (id) => id !== userData.id
+            );
+
+            if (!otherId) return null;
+
+            const userSnap = await getDoc(doc(db, "users", otherId));
+
+            if (!userSnap.exists()) return null;
+
+            return {
+              messageId: messageDoc.id,
+              rId: otherId,
+              lastMessage: data.lastMessage || "",
+              updatedAt: data.updatedAt || 0,
+              messageSeen: true,
+              userData: userSnap.data()
+            };
+          })
+        );
+
+        if (active) {
+          setChatData(
+            items
+              .filter(Boolean)
+              .sort((a, b) => b.updatedAt - a.updatedAt)
+          );
         }
-
-        const chatItems = res.data().chatsData || [];
-        const tempData = [];
-
-        for (const item of chatItems) {
-          const userRef = doc(db, "users", item.rId);
-          const userSnap = await getDoc(userRef);
-
-          tempData.push({
-            ...item,
-            userData: userSnap.data(),
-          });
-        }
-
-        setChatData(tempData.sort((a, b) => b.updatedAt - a.updatedAt));
-      });
-      return () => {
-        unSub();
+      } catch (error) {
+        console.error("Failed to load conversations:", error);
       }
+    },
+    (error) => {
+      console.error("Conversation listener failed:", error);
+      if (active) setChatData([]);
     }
-  }, [userData])
+  );
+
+  return () => {
+    active = false;
+    unsubscribe();
+  };
+}, [userData?.id]);
 
   const value = {
     userData, setUserData,
@@ -100,13 +182,13 @@ const AppContextProvider = (props) => {
     messagesId, setMessagesId,
     chatUser, setChatUser,
     chatVisible, setChatVisible
-  }
+  };
 
   return (
     <AppContext.Provider value={value}>
       {props.children}
     </AppContext.Provider>
-  )
-}
+  );
+};
 
-export default AppContextProvider
+export default AppContextProvider;

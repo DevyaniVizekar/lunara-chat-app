@@ -49,26 +49,46 @@ const ProfileUpdate = () => {
     }
   };
 
-  useEffect(() => {
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUid(user.uid);
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.data().name) {
-          setName(docSnap.data().name);
-        }
-        if (docSnap.data().bio) {
-          setBio(docSnap.data().bio);
-        }
-        if (docSnap.data().avatar) {
-          setPrevImage((await docSnap).data().avatar);
-        }
-      } else {
-        navigate("/");
+
+useEffect(() => {
+  let active = true;
+
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    try {
+      setUid(user.uid);
+
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (!active) return;
+
+      if (!docSnap.exists()) {
+        navigate("/", { replace: true });
+        return;
       }
-    });
-  }, []);
+
+      const data = docSnap.data();
+
+      setName(data.name || "");
+      setBio(data.bio || "");
+      setPrevImage(data.avatar || "");
+    } catch (error) {
+      console.error("Failed to load profile:", error);
+      toast.error("Could not load your profile. Please try again.");
+    }
+  });
+
+  return () => {
+    active = false;
+    unsubscribe();
+  };
+}, [navigate]);
+
 
   return (
     <div className="profile">

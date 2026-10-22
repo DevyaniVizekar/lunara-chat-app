@@ -13,120 +13,74 @@ const ChatBox = () => {
 
   const [input, setInput] = useState("");
 
-  const sendMessage = async () => {
-    try {
+const sendMessage = async () => {
+  const text = input.trim();
 
-      if (input && messagesId) {
-        await updateDoc(doc(db, 'messages', messagesId), {
-          messages: arrayUnion({
-            sId: userData.id,
-            text: input,
-            createdAt: new Date()
-          })
-        })
+  if (!text || !messagesId || !userData?.id) return;
 
-        const userIDs = [chatUser.rId, userData.id];
+  setInput("");
 
-        for (const id of userIDs) {
-
-          const userChatsRef = doc(db, "chats", id);
-          const userChatsSnapshot = await getDoc(userChatsRef);
-
-          if (!userChatsSnapshot.exists()) continue;
-
-          const userChatData = userChatsSnapshot.data();
-
-          const chatIndex = userChatData.chatsData.findIndex(
-            (c) => c.messageId === messagesId
-          );
-
-          if (chatIndex === -1) {
-            console.log("Chat not found:", id);
-            continue;
-          }
-
-          userChatData.chatsData[chatIndex].lastMessage = input.slice(0, 30);
-          userChatData.chatsData[chatIndex].updatedAt = Date.now();
-
-          if (userChatData.chatsData[chatIndex].rId === userData.id) {
-            userChatData.chatsData[chatIndex].messageSeen = false;
-          }
-
-          await updateDoc(userChatsRef, {
-            chatsData: userChatData.chatsData,
-          });
-
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error(error.message)
-    }
-    setInput("");
+  try {
+    await updateDoc(doc(db, "messages", messagesId), {
+      messages: arrayUnion({
+        sId: userData.id,
+        text,
+        createdAt: new Date()
+      }),
+      lastMessage: text.slice(0, 30),
+      updatedAt: Date.now()
+    });
+  } catch (error) {
+    console.error("Failed to send message:", error);
+    setInput(text);
+    toast.error(error.message || "Unable to send message.");
   }
+};
 
   const sendImage = async (e) => {
-    try {
-      const fileUrl = await upload(e.target.files[0]);
+  const file = e.target.files?.[0];
 
-      if (fileUrl && messagesId) {
+  if (!file || !messagesId || !userData?.id) return;
 
-        await updateDoc(doc(db, "messages", messagesId), {
-          messages: arrayUnion({
-            sId: userData.id,
-            image: fileUrl,
-            createdAt: new Date(),
-          }),
-        });
+  try {
+    const fileUrl = await upload(file);
 
-        const userIDs = [chatUser.rId, userData.id];
-
-        for (const id of userIDs) {
-
-          const userChatsRef = doc(db, "chats", id);
-          const userChatsSnapshot = await getDoc(userChatsRef);
-
-          if (!userChatsSnapshot.exists()) continue;
-
-          const userChatData = userChatsSnapshot.data();
-
-          const chatIndex = userChatData.chatsData.findIndex(
-            (c) => c.messageId === messagesId
-          );
-
-          if (chatIndex === -1) {
-            console.log("Chat not found:", id);
-            continue;
-          }
-
-          userChatData.chatsData[chatIndex].lastMessage = "Image";
-          userChatData.chatsData[chatIndex].updatedAt = Date.now();
-
-          if (userChatData.chatsData[chatIndex].rId === userData.id) {
-            userChatData.chatsData[chatIndex].messageSeen = false;
-          }
-
-          await updateDoc(userChatsRef, {
-            chatsData: userChatData.chatsData,
-          });
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error(error.message);
+    if (!fileUrl) {
+      throw new Error("Image upload failed.");
     }
-  };
+
+    await updateDoc(doc(db, "messages", messagesId), {
+      messages: arrayUnion({
+        sId: userData.id,
+        image: fileUrl,
+        createdAt: new Date()
+      }),
+      lastMessage: "Image",
+      updatedAt: Date.now()
+    });
+  } catch (error) {
+    console.error("Failed to send image:", error);
+    toast.error(error.message || "Unable to send image.");
+  } finally {
+    e.target.value = "";
+  }
+};
 
   const convertTimestamp = (timestamp) => {
-    let date = timestamp.toDate();
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-    if (hour > 12) {
-      return hour - 12 + ":" + minute + " PM";
-    } else {
-      return hour + ":" + minute + " AM";
-    }
-  }
+  if (!timestamp) return "";
+
+  const date =
+    typeof timestamp.toDate === "function"
+      ? timestamp.toDate()
+      : new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+};
 
   useEffect(() => {
 
